@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/xo_icon.dart';
 
 class Score extends StatelessWidget {
-  const Score({super.key});
-
+  Score({super.key, required this.score});
+  List<int> score = [0, 0, 0];
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Column(
-          children: [XO(text: 'X'), Text('0 Wins')],
+          children: [XO(text: 'X'), Text('${score[0].toString()} Wins')],
         ),
         Column(
-          children: [XO(text: 'O'), Text('0 Wins')],
+          children: [XO(text: 'O'), Text('${score[1].toString()} Wins')],
         ),
         Column(
           children: [
@@ -21,7 +21,7 @@ class Score extends StatelessWidget {
               Icons.balance,
               size: 50,
             ),
-            Text('0 Draws')
+            Text('${score[2].toString()} Draws')
           ],
         )
       ],

@@ -1,20 +1,33 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:tic_tac_toe/xo_icon.dart';
 
 class TicTacToeCell extends StatelessWidget {
   final int index;
+  final int? player;
+  final VoidCallback onTap;
 
-  const TicTacToeCell({super.key, required this.index});
+  const TicTacToeCell({
+    super.key,
+    required this.index,
+    required this.player,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-        onTap: () {
-          if (kDebugMode) {
-            print('tapped ${index + 1}');
-          }
-        },
-        child: Container(decoration: const BoxDecoration()));
+    return MouseRegion(
+      cursor:
+          player == null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: player == null ? onTap : null,
+        child: Container(
+          decoration: const BoxDecoration(),
+          child: Center(
+            child: player != null ? XO(text: player == 1 ? 'X' : 'O') : null,
+          ),
+        ),
+      ),
+    );
   }
 }
 

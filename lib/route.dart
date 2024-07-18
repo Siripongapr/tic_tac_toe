@@ -5,9 +5,9 @@ import 'package:tic_tac_toe/screens/menu.dart';
 class RouterScreen {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case '/menu':
+      case '/':
         return MaterialPageRoute(
-            settings: const RouteSettings(name: '/menu'),
+            settings: const RouteSettings(name: '/'),
             builder: (_) => const Menu());
       case '/game':
         return MaterialPageRoute(
