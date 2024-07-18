@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:tic_tac_toe/xo_icon.dart';
 
 class Menu extends StatelessWidget {
@@ -14,12 +13,12 @@ class Menu extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Tic Tac Toe"),
-              Row(
+              const Text("Tic Tac Toe"),
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [XO(text: 'X'), XO(text: 'O')],
               ),
-              Text("Choose your play mode"),
+              const Text("Choose your play mode"),
               Row(
                 children: [
                   Expanded(
@@ -27,12 +26,12 @@ class Menu extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushNamed(context, '/game');
                         },
-                        child: Text('With a friend')),
+                        child: const Text('With a friend')),
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              Row(
+              const SizedBox(height: 10),
+              const Row(
                 children: [
                   Expanded(
                       child: ElevatedButton(

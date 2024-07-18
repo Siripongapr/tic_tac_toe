@@ -8,6 +8,7 @@ class XO extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(text,
         style: TextStyle(
+            height: 1,
             fontSize: 50,
             fontWeight: FontWeight.bold,
             color: text == 'X' ? Colors.blue : Colors.green));
