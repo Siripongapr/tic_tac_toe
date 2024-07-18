@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/widget/game/cell.dart';
 import 'package:tic_tac_toe/widget/game/scrore.dart';
 
+import 'package:tic_tac_toe/xo_icon.dart';
+
 class Game extends StatefulWidget {
   const Game({super.key});
 
@@ -14,10 +16,14 @@ class _GameState extends State<Game> {
   List<int?> board = List<int?>.filled(9, null);
   String? winner;
   List<int> scores = [0, 0, 0];
+  List<Map<String, int>> moves = [];
+
   void handleTap(int index) {
     if (board[index] == null && winner == null) {
       setState(() {
         board[index] = currentPlayer;
+        moves.add({'player': currentPlayer, 'index': index});
+
         if (checkWin()) {
           winner = currentPlayer == 1 ? 'X' : 'O';
           scores[currentPlayer - 1]++;
@@ -56,9 +62,28 @@ class _GameState extends State<Game> {
   void resetGame() {
     setState(() {
       board = List<int?>.filled(9, null);
+      print(board);
       currentPlayer = 1;
       winner = null;
     });
+  }
+
+  Future<void> replayGame() async {
+    resetGame();
+    for (var move in moves) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      setState(() {
+        board[move['index']!] = move['player'];
+        currentPlayer = move['player'] == 1 ? 2 : 1;
+      });
+    }
+    if (checkWin()) {
+      winner = currentPlayer == 1 ? 'X' : 'O';
+    } else if (!board.contains(null)) {
+      winner = 'Draw';
+    } else {
+      currentPlayer = currentPlayer == 1 ? 2 : 1;
+    }
   }
 
   @override
@@ -75,6 +100,12 @@ class _GameState extends State<Game> {
               score: scores,
             ),
             const Spacer(),
+            if (winner != null)
+              Text(
+                winner == 'Draw' ? 'It\'s a Draw!' : '$winner Wins!',
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -104,16 +135,20 @@ class _GameState extends State<Game> {
                 ),
               ],
             ),
+            Column(
+              children: [
+                XO(text: currentPlayer == 1 ? 'X' : 'O'),
+                Text('Turn'),
+              ],
+            ),
             const Spacer(),
-            if (winner != null)
-              Text(
-                winner == 'Draw' ? 'It\'s a Draw!' : '$winner Wins!',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
             ElevatedButton(
               onPressed: resetGame,
               child: const Text('Restart Game'),
+            ),
+            ElevatedButton(
+              onPressed: replayGame,
+              child: const Text('Replay Game'),
             ),
             ElevatedButton(
               onPressed: () {
