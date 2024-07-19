@@ -1,11 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/controller/game_controller.dart';
 import 'package:tic_tac_toe/widget/game/cell.dart';
 import 'package:tic_tac_toe/xo_icon.dart';
 
 class Game extends StatefulWidget {
-  const Game({super.key});
-
+  const Game({super.key, required this.isAI});
+  final bool isAI;
   @override
   State<Game> createState() => _GameState();
 }
@@ -20,6 +21,7 @@ class _GameState extends State<Game> {
     _controller.fetchScores().then((_) {
       setState(() {});
     });
+    _controller.isAI = widget.isAI;
   }
 
   void _updateState() {
@@ -37,10 +39,16 @@ class _GameState extends State<Game> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
-                  children: [const XO(text: 'X'), Text('${_controller.xWins} Wins')],
+                  children: [
+                    const XO(text: 'X'),
+                    Text('${_controller.xWins} Wins')
+                  ],
                 ),
                 Column(
-                  children: [const XO(text: 'O'), Text('${_controller.oWins} Wins')],
+                  children: [
+                    const XO(text: 'O'),
+                    Text('${_controller.oWins} Wins')
+                  ],
                 ),
                 Column(
                   children: [
@@ -174,13 +182,8 @@ class _GameState extends State<Game> {
                 'Replays',
                 style: Theme.of(context).textTheme.headlineLarge,
               ),
-              StreamBuilder<List<Map<String, dynamic>>>(
-                stream: _controller.db
-                    .collection("replays")
-                    .snapshots()
-                    .map((snapshot) {
-                  return snapshot.docs.map((doc) => doc.data()).toList();
-                }),
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _controller.db.collection("replays").snapshots(),
                 builder: (context, snapshot) {
                   if (_controller.isLoading) {
                     return const Center(child: CircularProgressIndicator());
@@ -188,10 +191,25 @@ class _GameState extends State<Game> {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(child: Text('No replays found'));
                   }
-                  final replays = snapshot.data!;
+
+                  // Fetch and sort replays by timestamp
+                  final replays = snapshot.data!.docs.map((doc) {
+                    return {
+                      'id': doc.id,
+                      ...doc.data(),
+                    };
+                  }).toList();
+
+                  replays.sort((a, b) {
+                    Timestamp timestampA = a['timestamp'] as Timestamp;
+                    Timestamp timestampB = b['timestamp'] as Timestamp;
+                    return timestampA
+                        .compareTo(timestampB); // Sort by descending timestamp
+                  });
+
                   return SizedBox(
                     height: 200,
                     child: ListView.builder(

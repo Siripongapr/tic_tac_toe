@@ -1,8 +1,12 @@
+import 'dart:math';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class GameController {
   final FirebaseFirestore db = FirebaseFirestore.instance;
+  final VoidCallback onStateChanged;
+
+  GameController({required this.onStateChanged});
 
   int currentPlayer = 1;
   List<int?> board = List<int?>.filled(9, null);
@@ -13,12 +17,8 @@ class GameController {
   int oWins = 0;
   int draws = 0;
   bool _isLoading = true;
-
+  bool isAI = false;
   bool get isLoading => _isLoading;
-
-  void Function()? onStateChanged;
-
-  GameController({this.onStateChanged});
 
   Future<void> fetchScores() async {
     try {
@@ -37,13 +37,11 @@ class GameController {
         }
       }
       _isLoading = false;
-      onStateChanged?.call();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching scores: $e');
-      }
+      print('Error fetching scores: $e');
       _isLoading = false;
     }
+    onStateChanged();
   }
 
   void handleTap(int index) {
@@ -58,12 +56,19 @@ class GameController {
         winner = 'Draw';
         scores[2]++;
         saveReplay();
-        fetchScores();
       } else {
         currentPlayer = currentPlayer == 1 ? 2 : 1;
+        if (isAI) {
+          if (currentPlayer == 2) {
+            int? bestMove = findBestMove();
+            if (bestMove != null) {
+              handleTap(bestMove);
+            }
+          }
+        }
       }
-      onStateChanged?.call();
     }
+    onStateChanged();
   }
 
   bool checkWin() {
@@ -92,7 +97,7 @@ class GameController {
     currentPlayer = 1;
     winner = null;
     moves = [];
-    onStateChanged?.call();
+    onStateChanged();
   }
 
   Future<void> replayGame(List<int> replayMoves) async {
@@ -109,7 +114,7 @@ class GameController {
       } else {
         currentPlayer = currentPlayer == 1 ? 2 : 1;
       }
-      onStateChanged?.call();
+      onStateChanged();
     }
   }
 
@@ -120,14 +125,10 @@ class GameController {
       "scores": scores,
       "timestamp": FieldValue.serverTimestamp()
     }).then((DocumentReference doc) {
-      if (kDebugMode) {
-        print('DocumentSnapshot added with ID: ${doc.id}');
-      }
-      fetchScores();
+      print('DocumentSnapshot added with ID: ${doc.id}');
+      fetchScores(); // Update scores after saving
     }).catchError((error) {
-      if (kDebugMode) {
-        print('Failed to add document: $error');
-      }
+      print('Failed to add document: $error');
     });
   }
 
@@ -137,14 +138,88 @@ class GameController {
       for (var doc in replays.docs) {
         await doc.reference.delete();
       }
-      if (kDebugMode) {
-        print('All replays deleted successfully');
-      }
-      fetchScores();
+      print('All replays deleted successfully');
+      fetchScores(); // Update scores after deletion
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting replays: $e');
+      print('Error deleting replays: $e');
+    }
+  }
+
+  int? findBestMove() {
+    int? bestMove;
+    int bestValue = -1000;
+    for (int i = 0; i < board.length; i++) {
+      if (board[i] == null) {
+        board[i] = 2; // AI's move
+        int moveValue = minimax(board, 0, false, -1000, 1000);
+        board[i] = null; // Undo move
+
+        if (moveValue > bestValue) {
+          bestValue = moveValue;
+          bestMove = i;
+        }
       }
     }
+    return bestMove;
+  }
+
+  int minimax(
+      List<int?> board, int depth, bool isMaximizing, int alpha, int beta) {
+    String? result = checkGameResult();
+    if (result != null) {
+      if (result == 'X') return -10;
+      if (result == 'O') return 10;
+      return 0; // Draw
+    }
+
+    if (isMaximizing) {
+      int bestValue = -1000;
+      for (int i = 0; i < board.length; i++) {
+        if (board[i] == null) {
+          board[i] = 2; // AI's move
+          int value = minimax(board, depth + 1, false, alpha, beta);
+          board[i] = null; // Undo move
+          bestValue = max(bestValue, value);
+          alpha = max(alpha, bestValue);
+          if (beta <= alpha) break; // Beta cut-off
+        }
+      }
+      return bestValue;
+    } else {
+      int bestValue = 1000;
+      for (int i = 0; i < board.length; i++) {
+        if (board[i] == null) {
+          board[i] = 1; // Human's move
+          int value = minimax(board, depth + 1, true, alpha, beta);
+          board[i] = null; // Undo move
+          bestValue = min(bestValue, value);
+          beta = min(beta, bestValue);
+          if (beta <= alpha) break; // Alpha cut-off
+        }
+      }
+      return bestValue;
+    }
+  }
+
+  String? checkGameResult() {
+    const List<List<int>> winningCombinations = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+    for (var combo in winningCombinations) {
+      if (board[combo[0]] != null &&
+          board[combo[0]] == board[combo[1]] &&
+          board[combo[1]] == board[combo[2]]) {
+        return board[combo[0]] == 1 ? 'X' : 'O';
+      }
+    }
+    if (board.contains(null)) return null; // Game is still ongoing
+    return 'Draw'; // Board is full and no winner
   }
 }

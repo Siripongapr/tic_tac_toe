@@ -12,7 +12,15 @@ class RouterScreen {
       case '/game':
         return MaterialPageRoute(
             settings: const RouteSettings(name: '/game'),
-            builder: (_) => const Game());
+            builder: (_) => const Game(
+                  isAI: false,
+                ));
+      case '/gameWithAI':
+        return MaterialPageRoute(
+            settings: const RouteSettings(name: '/gameWithAI'),
+            builder: (_) => const Game(
+                  isAI: true,
+                ));
 
       default:
         return MaterialPageRoute(
