@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:tic_tac_toe/db/db.dart';
+import 'package:tic_tac_toe/controller/game_controller.dart';
 import 'package:tic_tac_toe/widget/game/cell.dart';
-import 'package:tic_tac_toe/widget/game/scrore.dart';
 import 'package:tic_tac_toe/xo_icon.dart';
 
 class Game extends StatefulWidget {
@@ -13,150 +11,19 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  final DatabaseService _databaseService = DatabaseService();
-  int currentPlayer = 1;
-  List<int?> board = List<int?>.filled(9, null);
-  String? winner;
-  List<int> scores = [0, 0, 0];
-  List<int> moves = [];
-  int xWins = 0;
-  int oWins = 0;
-  int draws = 0;
-  bool _isLoading = true; // Add a loading flag
-
-  final db = FirebaseFirestore.instance;
+  late final GameController _controller;
 
   @override
   void initState() {
     super.initState();
-    _fetchScores();
-  }
-
-  Future<void> _fetchScores() async {
-    try {
-      final replays = await db.collection("replays").get();
-      xWins = 0;
-      oWins = 0;
-      draws = 0;
-
-      for (var doc in replays.docs) {
-        final data = doc.data();
-        if (data['winner'] == 'X') {
-          xWins++;
-        } else if (data['winner'] == 'O') {
-          oWins++;
-        } else if (data['winner'] == 'Draw') {
-          draws++;
-        }
-      }
-
-      setState(() {
-        _isLoading = false; // Set loading to false once data is fetched
-      });
-    } catch (e) {
-      print('Error fetching scores: $e');
-      setState(() {
-        _isLoading = false; // Set loading to false in case of an error
-      });
-    }
-  }
-
-  void handleTap(int index) {
-    if (board[index] == null && winner == null) {
-      setState(() {
-        board[index] = currentPlayer;
-        moves.add(index);
-
-        if (checkWin()) {
-          winner = currentPlayer == 1 ? 'X' : 'O';
-          scores[currentPlayer - 1]++;
-          saveReplay();
-        } else if (!board.contains(null)) {
-          winner = 'Draw';
-          scores[2]++;
-          saveReplay();
-        } else {
-          currentPlayer = currentPlayer == 1 ? 2 : 1;
-        }
-      });
-    }
-  }
-
-  bool checkWin() {
-    const List<List<int>> winningCombinations = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-    ];
-
-    for (var combo in winningCombinations) {
-      if (board[combo[0]] != null &&
-          board[combo[0]] == board[combo[1]] &&
-          board[combo[1]] == board[combo[2]]) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void resetGame() {
-    setState(() {
-      board = List<int?>.filled(9, null);
-      currentPlayer = 1;
-      winner = null;
-      moves = [];
+    _controller = GameController(onStateChanged: _updateState);
+    _controller.fetchScores().then((_) {
+      setState(() {});
     });
   }
 
-  Future<void> replayGame(List<int> replayMoves) async {
-    resetGame();
-    for (var move in replayMoves) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      setState(() {
-        board[move] = currentPlayer;
-        if (checkWin()) {
-          winner = currentPlayer == 1 ? 'X' : 'O';
-          scores[currentPlayer - 1]++;
-        } else if (!board.contains(null)) {
-          winner = 'Draw';
-          scores[2]++;
-        } else {
-          currentPlayer = currentPlayer == 1 ? 2 : 1;
-        }
-      });
-    }
-  }
-
-  void saveReplay() {
-    db.collection("replays").add({
-      "moves": moves,
-      "winner": winner,
-      "scores": scores,
-      "timestamp": FieldValue.serverTimestamp()
-    }).then((DocumentReference doc) {
-      print('DocumentSnapshot added with ID: ${doc.id}');
-      _fetchScores(); // Update scores after saving
-    }).catchError((error) {
-      print('Failed to add document: $error');
-    });
-  }
-
-  Future<void> deleteAllReplays() async {
-    try {
-      final replays = await db.collection("replays").get();
-      for (var doc in replays.docs) {
-        await doc.reference.delete();
-      }
-      print('All replays deleted successfully');
-      _fetchScores(); // Update scores after deletion
-    } catch (e) {
-      print('Error deleting replays: $e');
-    }
+  void _updateState() {
+    setState(() {});
   }
 
   @override
@@ -170,10 +37,10 @@ class _GameState extends State<Game> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
-                  children: [XO(text: 'X'), Text('$xWins Wins')],
+                  children: [XO(text: 'X'), Text('${_controller.xWins} Wins')],
                 ),
                 Column(
-                  children: [XO(text: 'O'), Text('$oWins Wins')],
+                  children: [XO(text: 'O'), Text('${_controller.oWins} Wins')],
                 ),
                 Column(
                   children: [
@@ -181,57 +48,21 @@ class _GameState extends State<Game> {
                       Icons.balance,
                       size: 50,
                     ),
-                    Text('$draws Draws')
+                    Text('${_controller.draws} Draws')
                   ],
                 )
               ],
             ),
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: _databaseService.getReplays(),
-                builder: (context, snapshot) {
-                  if (_isLoading) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No replays found'));
-                  }
-
-                  final replays = snapshot.data!;
-
-                  return ListView.builder(
-                    itemCount: replays.length,
-                    itemBuilder: (context, index) {
-                      final replay = replays[index];
-
-                      final moves =
-                          List<int>.from(replay['moves'] as List<dynamic>);
-
-                      return ListTile(
-                        title: Text('Replay ${index + 1}'),
-                        subtitle: Text('Moves: ${moves.join(', ')}'),
-                        trailing: Text('Winner: ${replay['winner']}'),
-                        onTap: () async {
-                          this.moves.clear();
-                          this.moves.addAll(moves);
-
-                          await replayGame(moves);
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
+            ElevatedButton(
+              onPressed: _showReplaysBottomSheet,
+              child: const Text('Show Replays'),
             ),
             const Spacer(),
-            if (winner != null)
+            if (_controller.winner != null)
               Text(
-                winner == 'Draw' ? 'It\'s a Draw!' : '$winner Wins!',
+                _controller.winner == 'Draw'
+                    ? 'It\'s a Draw!'
+                    : '${_controller.winner} Wins!',
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
@@ -255,8 +86,12 @@ class _GameState extends State<Game> {
                       itemBuilder: (context, index) {
                         return TicTacToeCell(
                           index: index,
-                          player: board[index],
-                          onTap: () => handleTap(index),
+                          player: _controller.board[index],
+                          onTap: () {
+                            setState(() {
+                              _controller.handleTap(index);
+                            });
+                          },
                         );
                       },
                     ),
@@ -266,13 +101,17 @@ class _GameState extends State<Game> {
             ),
             Column(
               children: [
-                XO(text: currentPlayer == 1 ? 'X' : 'O'),
+                XO(text: _controller.currentPlayer == 1 ? 'X' : 'O'),
                 Text('Turn'),
               ],
             ),
             const Spacer(),
             ElevatedButton(
-              onPressed: resetGame,
+              onPressed: () {
+                setState(() {
+                  _controller.resetGame();
+                });
+              },
               child: const Text('Restart Game'),
             ),
             ElevatedButton(
@@ -296,9 +135,9 @@ class _GameState extends State<Game> {
                       ),
                     ) ??
                     false;
-
                 if (confirm) {
-                  await deleteAllReplays();
+                  await _controller.deleteAllReplays();
+                  setState(() {});
                 }
               },
               child: const Text('Reset All Replays'),
@@ -319,6 +158,70 @@ class _GameState extends State<Game> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showReplaysBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Replays',
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+              StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _controller.db
+                    .collection("replays")
+                    .snapshots()
+                    .map((snapshot) {
+                  return snapshot.docs.map((doc) => doc.data()).toList();
+                }),
+                builder: (context, snapshot) {
+                  if (_controller.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No replays found'));
+                  }
+                  final replays = snapshot.data!;
+                  return SizedBox(
+                    height: 200, // Adjust height as needed
+                    child: ListView.builder(
+                      itemCount: replays.length,
+                      scrollDirection: Axis.vertical,
+                      itemBuilder: (context, index) {
+                        final replay = replays[index];
+                        final moves =
+                            List<int>.from(replay['moves'] as List<dynamic>);
+                        return ListTile(
+                          title: Text('Replay ${index + 1}'),
+                          subtitle: Text('Moves: ${moves.join(', ')}'),
+                          trailing: Text('Winner: ${replay['winner']}'),
+                          onTap: () async {
+                            _controller.moves.clear();
+                            _controller.moves.addAll(moves);
+                            Navigator.of(context)
+                                .pop(); // Close the bottom sheet
+                            await _controller.replayGame(moves);
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
