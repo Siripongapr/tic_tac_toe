@@ -11,6 +11,10 @@ class XO extends StatelessWidget {
             height: 1,
             fontSize: 50,
             fontWeight: FontWeight.bold,
-            color: text == 'X' ? Colors.blue : Colors.green));
+            color: text == 'X'
+                ? Colors.blue
+                : text == 'O'
+                    ? Colors.green
+                    : Colors.grey));
   }
 }

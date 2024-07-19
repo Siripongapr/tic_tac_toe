@@ -31,11 +31,14 @@ class Menu extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              const Row(
+              Row(
                 children: [
                   Expanded(
                       child: ElevatedButton(
-                          onPressed: null, child: Text('With AI'))),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/gameWithAI');
+                          },
+                          child: Text('With AI'))),
                 ],
               ),
             ],
