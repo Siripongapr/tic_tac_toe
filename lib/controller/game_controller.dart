@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class GameController {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -15,7 +16,6 @@ class GameController {
 
   bool get isLoading => _isLoading;
 
-  // Add a callback to notify when state changes
   void Function()? onStateChanged;
 
   GameController({this.onStateChanged});
@@ -37,9 +37,11 @@ class GameController {
         }
       }
       _isLoading = false;
-      onStateChanged?.call(); // Notify when scores are updated
+      onStateChanged?.call();
     } catch (e) {
-      print('Error fetching scores: $e');
+      if (kDebugMode) {
+        print('Error fetching scores: $e');
+      }
       _isLoading = false;
     }
   }
@@ -60,7 +62,7 @@ class GameController {
       } else {
         currentPlayer = currentPlayer == 1 ? 2 : 1;
       }
-      onStateChanged?.call(); // Notify when the game state changes
+      onStateChanged?.call();
     }
   }
 
@@ -90,7 +92,7 @@ class GameController {
     currentPlayer = 1;
     winner = null;
     moves = [];
-    onStateChanged?.call(); // Notify when the game is reset
+    onStateChanged?.call();
   }
 
   Future<void> replayGame(List<int> replayMoves) async {
@@ -107,7 +109,7 @@ class GameController {
       } else {
         currentPlayer = currentPlayer == 1 ? 2 : 1;
       }
-      onStateChanged?.call(); // Notify during the replay
+      onStateChanged?.call();
     }
   }
 
@@ -118,10 +120,14 @@ class GameController {
       "scores": scores,
       "timestamp": FieldValue.serverTimestamp()
     }).then((DocumentReference doc) {
-      print('DocumentSnapshot added with ID: ${doc.id}');
-      fetchScores(); // Update scores after saving
+      if (kDebugMode) {
+        print('DocumentSnapshot added with ID: ${doc.id}');
+      }
+      fetchScores();
     }).catchError((error) {
-      print('Failed to add document: $error');
+      if (kDebugMode) {
+        print('Failed to add document: $error');
+      }
     });
   }
 
@@ -131,10 +137,14 @@ class GameController {
       for (var doc in replays.docs) {
         await doc.reference.delete();
       }
-      print('All replays deleted successfully');
-      fetchScores(); // Update scores after deletion
+      if (kDebugMode) {
+        print('All replays deleted successfully');
+      }
+      fetchScores();
     } catch (e) {
-      print('Error deleting replays: $e');
+      if (kDebugMode) {
+        print('Error deleting replays: $e');
+      }
     }
   }
 }

@@ -37,14 +37,14 @@ class _GameState extends State<Game> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
-                  children: [XO(text: 'X'), Text('${_controller.xWins} Wins')],
+                  children: [const XO(text: 'X'), Text('${_controller.xWins} Wins')],
                 ),
                 Column(
-                  children: [XO(text: 'O'), Text('${_controller.oWins} Wins')],
+                  children: [const XO(text: 'O'), Text('${_controller.oWins} Wins')],
                 ),
                 Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.balance,
                       size: 50,
                     ),
@@ -102,7 +102,7 @@ class _GameState extends State<Game> {
             Column(
               children: [
                 XO(text: _controller.currentPlayer == 1 ? 'X' : 'O'),
-                Text('Turn'),
+                const Text('Turn'),
               ],
             ),
             const Spacer(),
@@ -146,13 +146,13 @@ class _GameState extends State<Game> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Icon(
-                Icons.home,
-                size: 50,
-              ),
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(20),
+              ),
+              child: const Icon(
+                Icons.home,
+                size: 50,
               ),
             ),
           ],
@@ -183,17 +183,17 @@ class _GameState extends State<Game> {
                 }),
                 builder: (context, snapshot) {
                   if (_controller.isLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No replays found'));
+                    return const Center(child: Text('No replays found'));
                   }
                   final replays = snapshot.data!;
                   return SizedBox(
-                    height: 200, // Adjust height as needed
+                    height: 200,
                     child: ListView.builder(
                       itemCount: replays.length,
                       scrollDirection: Axis.vertical,
@@ -208,8 +208,7 @@ class _GameState extends State<Game> {
                           onTap: () async {
                             _controller.moves.clear();
                             _controller.moves.addAll(moves);
-                            Navigator.of(context)
-                                .pop(); // Close the bottom sheet
+                            Navigator.of(context).pop();
                             await _controller.replayGame(moves);
                           },
                         );
