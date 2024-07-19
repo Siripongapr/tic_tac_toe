@@ -40,7 +40,6 @@ class TicTacToePainter extends CustomPainter {
 
     double cellSize = size.width / 3;
 
-    // Draw vertical lines
     for (int i = 1; i < 3; i++) {
       canvas.drawLine(
         Offset(cellSize * i, 0),
@@ -49,7 +48,6 @@ class TicTacToePainter extends CustomPainter {
       );
     }
 
-    // Draw horizontal lines
     for (int i = 1; i < 3; i++) {
       canvas.drawLine(
         Offset(0, cellSize * i),

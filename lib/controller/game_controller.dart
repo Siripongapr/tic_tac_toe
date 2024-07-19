@@ -126,7 +126,7 @@ class GameController {
       "timestamp": FieldValue.serverTimestamp()
     }).then((DocumentReference doc) {
       print('DocumentSnapshot added with ID: ${doc.id}');
-      fetchScores(); // Update scores after saving
+      fetchScores();
     }).catchError((error) {
       print('Failed to add document: $error');
     });
@@ -139,7 +139,7 @@ class GameController {
         await doc.reference.delete();
       }
       print('All replays deleted successfully');
-      fetchScores(); // Update scores after deletion
+      fetchScores();
     } catch (e) {
       print('Error deleting replays: $e');
     }
@@ -150,9 +150,9 @@ class GameController {
     int bestValue = -1000;
     for (int i = 0; i < board.length; i++) {
       if (board[i] == null) {
-        board[i] = 2; // AI's move
+        board[i] = 2;
         int moveValue = minimax(board, 0, false, -1000, 1000);
-        board[i] = null; // Undo move
+        board[i] = null;
 
         if (moveValue > bestValue) {
           bestValue = moveValue;
@@ -169,19 +169,19 @@ class GameController {
     if (result != null) {
       if (result == 'X') return -10;
       if (result == 'O') return 10;
-      return 0; // Draw
+      return 0;
     }
 
     if (isMaximizing) {
       int bestValue = -1000;
       for (int i = 0; i < board.length; i++) {
         if (board[i] == null) {
-          board[i] = 2; // AI's move
+          board[i] = 2;
           int value = minimax(board, depth + 1, false, alpha, beta);
-          board[i] = null; // Undo move
+          board[i] = null;
           bestValue = max(bestValue, value);
           alpha = max(alpha, bestValue);
-          if (beta <= alpha) break; // Beta cut-off
+          if (beta <= alpha) break;
         }
       }
       return bestValue;
@@ -189,12 +189,12 @@ class GameController {
       int bestValue = 1000;
       for (int i = 0; i < board.length; i++) {
         if (board[i] == null) {
-          board[i] = 1; // Human's move
+          board[i] = 1;
           int value = minimax(board, depth + 1, true, alpha, beta);
-          board[i] = null; // Undo move
+          board[i] = null;
           bestValue = min(bestValue, value);
           beta = min(beta, bestValue);
-          if (beta <= alpha) break; // Alpha cut-off
+          if (beta <= alpha) break;
         }
       }
       return bestValue;
@@ -219,7 +219,7 @@ class GameController {
         return board[combo[0]] == 1 ? 'X' : 'O';
       }
     }
-    if (board.contains(null)) return null; // Game is still ongoing
-    return 'Draw'; // Board is full and no winner
+    if (board.contains(null)) return null;
+    return 'Draw';
   }
 }

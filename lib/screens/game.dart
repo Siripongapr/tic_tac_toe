@@ -195,7 +195,6 @@ class _GameState extends State<Game> {
                     return const Center(child: Text('No replays found'));
                   }
 
-                  // Fetch and sort replays by timestamp
                   final replays = snapshot.data!.docs.map((doc) {
                     return {
                       'id': doc.id,
@@ -206,8 +205,7 @@ class _GameState extends State<Game> {
                   replays.sort((a, b) {
                     Timestamp timestampA = a['timestamp'] as Timestamp;
                     Timestamp timestampB = b['timestamp'] as Timestamp;
-                    return timestampA
-                        .compareTo(timestampB); // Sort by descending timestamp
+                    return timestampA.compareTo(timestampB);
                   });
 
                   return SizedBox(
