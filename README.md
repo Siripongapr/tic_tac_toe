@@ -1,16 +1,14 @@
 # tic_tac_toe
 
-A new Flutter project.
+This is Tic Tac Toe app just for testing only.
 
 ## Getting Started
+Please make sure you install flutter correctly.
+This app using flutter version 3.23.0-0.1.pre, so make sure you switch to beta channel.
 
-This project is a starting point for a Flutter application.
+Please run "flutter run" for run the app.
 
-A few resources to get you started if this is your first Flutter project:
+Thank you the below user for the UI for this app. (Just the UI) 
+https://github.com/GnuaAruht/tic_tac_toe
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This app using minimax algorithm for AI. 
