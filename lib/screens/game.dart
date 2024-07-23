@@ -61,7 +61,7 @@ class _GameState extends State<Game> {
                 )
               ],
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: _showReplaysBottomSheet,
               child: const Text('Show Replays'),
             ),
@@ -114,54 +114,75 @@ class _GameState extends State<Game> {
               ],
             ),
             const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _controller.resetGame();
-                });
-              },
-              child: const Text('Restart Game'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                bool confirm = await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Confirm'),
-                        content: const Text(
-                            'Are you sure you want to delete all replays?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _controller.resetGame();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(20),
+                  ),
+                  child: const Icon(
+                    Icons.restart_alt,
+                    size: 50,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    bool confirm = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Confirm'),
+                            content: const Text(
+                                'Are you sure you want to delete all replays?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('Delete All'),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete All'),
-                          ),
-                        ],
-                      ),
-                    ) ??
-                    false;
-                if (confirm) {
-                  await _controller.deleteAllReplays();
-                  setState(() {});
-                }
-              },
-              child: const Text('Reset All Replays'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(20),
-              ),
-              child: const Icon(
-                Icons.home,
-                size: 50,
-              ),
+                        ) ??
+                        false;
+                    if (confirm) {
+                      await _controller.deleteAllReplays();
+                      setState(() {});
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(20),
+                  ),
+                  child: const Icon(
+                    Icons.delete,
+                    size: 50,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(20),
+                  ),
+                  child: const Icon(
+                    Icons.home,
+                    size: 50,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

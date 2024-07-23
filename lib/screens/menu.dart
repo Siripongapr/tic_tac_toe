@@ -13,12 +13,13 @@ class Menu extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Tic Tac Toe"),
+              const Text("Tic Tac Toe", style: TextStyle(fontSize: 30)),
               const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [XO(text: 'X'), XO(text: 'O')],
               ),
               const Text("Choose your play mode"),
+              const SizedBox(height: 50),
               Row(
                 children: [
                   Expanded(
@@ -26,7 +27,10 @@ class Menu extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushNamed(context, '/game');
                         },
-                        child: const Text('With a friend')),
+                        child: const Text(
+                          'With a friend',
+                          style: TextStyle(color: Colors.white),
+                        )),
                   ),
                 ],
               ),
@@ -35,10 +39,14 @@ class Menu extends StatelessWidget {
                 children: [
                   Expanded(
                       child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/gameWithAI');
-                          },
-                          child: Text('With AI'))),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/gameWithAI');
+                    },
+                    child: Text(
+                      'With AI',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )),
                 ],
               ),
             ],
